@@ -1,0 +1,510 @@
+CREATE DATABASE	StudentManagementSystem;
+USE StudentManagementSystem;
+
+CREATE	TABLE Student(
+stu_id int,
+stu_first_name varchar(50) NOT NULL,
+stu_second_name varchar(50) NOT NULL,
+stu_email varchar(50) NOT NULL,
+stu_mobile int NOT NULL,
+stu_add varchar(50) NOT NULL,
+PRIMARY KEY(stu_id)
+);
+
+INSERT INTO Student Values(1,'Abhishek','Kumar','ak47@gmail.com',76230,'India');
+INSERT INTO Student Values(2,'Abhishikt','Augustine','augustine@gmail.com',465987,'India');
+INSERT INTO Student Values(3,'Meban','Teidor','manik@gmail.com',65465,'India');
+INSERT INTO Student Values(4,'Pritosh','Bhai','pritosh@cdac.com',05245,'India');
+INSERT INTO Student Values(5,'Santa','Claus','reindeer@snow.com',2512,'North Pole');
+
+CREATE TABLE Course(
+crs_id int NOT NULL,
+crs_name varchar(40) NOT NULL,
+crs_desc varchar(100) NOT NULL,
+crs_duration varchar(40) NOT NULL,
+stu_id int NOT NULL,
+PRIMARY KEY(crs_id),
+FOREIGN KEY (stu_id) REFERENCES Student(stu_id)
+);
+
+INSERT INTO Course Values(100,'Chemistry','Involves chemicals','4 Years',1);
+INSERT INTO Course Values(101,'Physics','Space and Time','3 Years',2);
+INSERT INTO Course Values(102,'Maths','Solving Problems','3 Years',3);
+INSERT INTO Course Values(103,'Law','Cases','3 Years',4);
+INSERT INTO Course Values(104,'MBA','Management','2 Years',5);
+
+CREATE TABLE Faculty(
+fac_id int NOT NULL,
+fac_name varchar(40) NOT NULL,
+fac_desc varchar(100) NOT NULL,
+crs_id int NOT NULL,
+PRIMARY KEY(fac_id),
+FOREIGN KEY(crs_id) REFERENCES Course(crs_id)
+);
+
+INSERT INTO Faculty Values(999,'Marie Curie','Won a Nobel Prize',102);
+INSERT INTO Faculty Values(998,'C V Raman','Won a Nobel Prize',100);
+INSERT INTO Faculty Values(997,'Srinivasa Ramanujan','Fellow of the Royal Society',101);
+INSERT INTO Faculty Values(996,'Mr. Law','Teaches Lzw',102);
+INSERT INTO Faculty Values(995,'Mr. CEO','Does Business',103);
+
+CREATE TABLE Exam(
+exam_id int NOT NULL,
+exam_type varchar(40) NOT NULL,
+exam_batch varchar(40) NOT NULL,
+exam_date date NOT NULL,
+fac_id int NOT NULL,
+PRIMARY KEY(exam_id),
+FOREIGN KEY(fac_id) REFERENCES Faculty(fac_id)
+);
+
+INSERT INTO Exam Values(345,'Online','Batch 1','2019-11-1',999);
+INSERT INTO Exam Values(346,'Offline','Batch 2','2019-11-2',998);
+INSERT INTO Exam Values(347,'Online','Batch 1','2019-11-3',997);
+INSERT INTO Exam Values(348,'Offline','Batch 2','2019-11-4',999);
+INSERT INTO Exam Values(349,'Online','Batch 1','2019-11-5',998);
+
+CREATE TABLE Login(
+log_user_name varchar(40) NOT NULL,
+log_password varchar(40) NOT NULL,
+stu_id int NOT NULL,
+PRIMARY KEY (log_user_name),
+FOREIGN KEY (stu_id) REFERENCES Student(stu_id)
+);
+
+INSERT INTO Login Values('qwe','123',1);
+INSERT INTO Login Values('wer','234',2);
+INSERT INTO Login Values('ert','345',3);
+INSERT INTO Login Values('rty','456',4);
+INSERT INTO Login Values('tyu','567',5);
+
+CREATE TABLE Fees(
+fee_id int NOT NULL,
+fee_type varchar(40) NOT NULL,
+fee_amt int NOT NULL,
+fee_date date NOT NULL,
+crs_id int NOT NULL,
+PRIMARY KEY(fee_id),
+FOREIGN KEY (crs_id) REFERENCES Course (crs_id)
+);
+
+INSERT INTO Fees Values(001,'Cash',20000,'2019-12-10',100);
+INSERT INTO Fees Values(002,'NetBanking',21000,'2019-12-11',101);
+INSERT INTO Fees Values(003,'Cheque',25000,'2019-12-12',102);
+INSERT INTO Fees Values(004,'Paytm',56000,'2019-12-13',104);
+INSERT INTO Fees Values(005,'BhimUpi',1000000,'2019-12-14',103);
+
+CREATE TABLE Clubs(
+club_name varchar(40) NOT NULL,
+club_desc varchar(40) NOT NULL,
+stu_id int NOT NULL,
+PRIMARY KEY(club_name),
+FOREIGN KEY(stu_id) REFERENCES Student(stu_id)
+);
+
+INSERT INTO Clubs Values('Computer Club','Teach Code',1);
+INSERT INTO Clubs Values('Cricket Club','Plays Cricket',4);
+INSERT INTO Clubs Values('Football Club','Plays Football',2);
+INSERT INTO Clubs Values('Computer Gaming','Plays Computer Games',2);
+INSERT INTO Clubs Values('Books','Read Books',3);
+
+
+                                            /-----------------------------Query Used------------------------------------------/
+
+1) select * from student where stu_second_name like '_____';
+2) select month(fee_date) from fees where crs_id>102;
+3) select stu_add from student where stu_add NOT IN ('India');
+4) select count(stu_first_name) from student;
+5) select count(stu_first_name) as NumberOfStudents from student;
+6) select stu_first_name, stu_second_name,crs_name,crs_duration from student, course where course.stu_id=student.stu_id;
++----------------+-----------------+-----------+--------------+
+| stu_first_name | stu_second_name | crs_name  | crs_duration |
++----------------+-----------------+-----------+--------------+
+| Abhishek       | Kumar           | Chemistry | 4 Years      |
+| Abhishikt      | Augustine       | Physics   | 3 Years      |
+| Meban          | Teidor          | Maths     | 3 Years      |
+| Pritosh        | Bhai            | Law       | 3 Years      |
+| Santa          | Claus           | MBA       | 2 Years      |
++----------------+-----------------+-----------+--------------+
+7) select fac_name,fac_desc from faculty WHERE crs_id IN (Select crs_id from course where crs_id = 102);
+8) alter table student insert column add stu_age int NOT NULL;
+9) select stu_id,stu_first_name from student where stu_id IN ( select stu_id from course);
+10) select fee_type,fee_date from fees where fee_amt=(select min(fee_amt) from fees);
+11) create view vstudent as select stu_id,stu_first_name from student;
+--->select stu_first_name, fee_amt from student, fees,course where student.stu_id=course.stu_id AND course.crs_id = fees.crs_id;
+
+-------------------------------------------------Functions---------------------------------------------------
+
+1)	SET GLOBAL log_bin_trust_function_creators=1;
+   	Delimiter /
+   	create function findfees(gid int(50))
+   	returns int
+    	Begin
+    	Return(select fee_amt from fees where fee_id = gid);
+    	END /
+    	Delimiter;
+
+2) 	Delimiter @
+    	create function showpwd(usr varchar(50))
+    	returns int
+    	Begin
+    	Return(select log_password from login where log_user_name=usr);
+	END @
+
+3)	Delimiter %
+    	create function showadate(eid varchar(50))
+    	returns date
+    	Begin
+    	Return(select exam_date as Date_Of_Exam from exam where exam_id=eid );
+	END %
+	Delimiter;
+
+4)	Delimiter $
+	create function showClub(sid int(40))
+	returns int
+	Begin
+	Return(select club_desc as FavClub from student, club where student.club_name=club.club_name);
+	END $
+
+5)	Delimiter &
+	create function rbatch(a int)
+	returns varchar(20)
+	Begin
+	Return(select exam_batch from exam where exam_id=a);
+	END &
+
+
+17)	Delimiter #
+	create function con(sid int,add1 varchar(20))
+	returns varchar(20)
+	begin		
+	return(select stu_first_name from student where stu_id=sid and stu_add=add1);
+	end #
+
+18)    Delimiter !
+       create function abc(id int)
+	returns varchar(30)
+	begin	
+	return(select fac_desc from faculty where fac_id=id);
+	end !
+
+
+         ----------------------------------------------PROCEDURES---------------------------------------------------
+
+
+1)	Delimiter &
+	Create Procedure getstudentadd(IN coun int (40))
+        Begin
+	select stu_first_name , club_name from student,clubs where clubs.stu_id=student.stu_id and student.stu_id=coun;
+	END &
+	Delimiter ;
+
+
+2) 	Delimiter %
+	Create Procedure addamt(IN feeyear int(40) , OUT feeamt varchar(40))
+        Begin
+	select sum(fee_amt) from fees where year(fee_date) = feeyear INTO feeamt; 
+	END %
+	Delimiter ;
+
+
+3)	Delimiter %
+	Create Procedure sumamt()
+        Begin
+ 	select sum(fee_amt) as Total_Amount from fees ;
+ 	END %
+	Delimiter ;
+
+        
+4)	Delimiter /
+	Create Procedure show_data(p_year int)
+        Begin
+ 	select exam_id,exam_batch from exam where year(exam_date)=p_year ;
+ 	END /
+	Delimiter ;
+
+
+5)	Delimiter &
+	Create procedure facname(in examyr int)
+	Begin	
+	select fac_name,fac_desc from faculty,exam where exam.fac_id=faculty.fac_id and year(exam_date)=examyr;  
+	END&
+	Delimiter ;
+
+--------------------------------------------------------TRIGGERS----------------------------------------------------------------------
+
+1)	DELIMITER #
+	CREATE trigger ins_check before insert 
+	on fees for each row 
+	begin
+	IF new.fee_amt<50000  then
+	SIGNAL SQLSTATE '93288'
+	SET MESSAGE_TEXT = 'WRONG INPUT';
+	END IF;
+	END #
+	delimiter ;
+
+2)	Delimiter &
+	CREATE TRIGGER chk_update BEFORE UPDATE ON FEES
+	FOR EACH ROW
+	BEGIN
+	DECLARE errormsg varchar(100);
+	SET errormsg=concat('Wrong Input'," ",new.fee_amt);
+	IF new.fee_amt < old.fee_amt THEN
+	SIGNAL SQLSTATE '45000'
+	SET MESSAGE_TEXT = errormsg;
+	END IF;
+	END &
+	DELIMITER ;
+
+3)	DELIMITER $$
+ 
+	CREATE TRIGGER before_student_delete
+	BEFORE DELETE
+	ON Student FOR EACH ROW
+	BEGIN
+    	INSERT INTO StudentArchives(FirstName,SecondName,email)
+    	VALUES(OLD.stu_first_name,OLD.stu_second_name,OLD.stu_email);
+	END$$    
+ 
+	DELIMITER ;
+
+4)	create table show_fees(
+        fees int not null );
+
+	DELIMITER //
+	CREATE trigger avg after delete on fees for each row
+	begin
+	insert into show_fees(fees) values(old.fee_amt);
+	end//
+	delimiter ;
+
+5)	DELIMITER $$
+ 
+	CREATE TRIGGER after_members_insert
+	AFTER INSERT
+	ON members FOR EACH ROW
+	BEGIN
+    	IF NEW.birthDate IS NULL THEN
+        INSERT INTO reminders(memberId, message)
+        VALUES(new.id,CONCAT('Hi ', NEW.name, ', please update your date of birth.'));
+    	END IF;
+	END$$
+ 
+	DELIMITER ;
+
+==================================================LOOPING============================================================================
+
+
+=== While Do===
+
+1)	Delimiter /
+	Create procedure get_name()
+	Begin
+	Declare a int;
+	Declare strng varchar(200);
+	Declare name varchar(200);
+
+	set a = 1;
+	set strng = '';
+	set name='';
+	While (a <=5) do
+	select stu_first_name into name from student where stu_id = a ;
+	set strng = concat(strng,name,',');
+	set a =a+1;
+	End While;
+
+	Select strng;
+	End /
+
+	Delimiter ;
+
+2)	  Delimiter /
+          Create procedure show_batch()
+          Begin
+          Declare a int;
+          Declare strng varchar(200);
+          Declare name varchar(200);
+          set a = 345;
+          set strng = '';
+          set name='';
+          While (a <=349) do
+          select exam_batch into name from exam where exam_id = a ;
+	        set strng = concat(strng,name,',');
+	        set a =a+1;
+          End While;
+          Select strng;
+          End /
+          Delimiter ; 
+ 
+=======loop=======
+
+1)	DROP PROCEDURE LoopDemo;
+ 
+	DELIMITER $$
+	CREATE PROCEDURE LoopDemo()
+	BEGIN
+    	DECLARE x  INT;
+    	DECLARE str  VARCHAR(255);
+        
+    	SET x = 1;
+    	SET str =  '';
+        
+    	loop_label:  LOOP
+        IF  x > 10 THEN 
+        LEAVE  loop_label;
+        END  IF;
+            
+        SET  x = x + 1;
+        IF  (x mod 2) THEN
+        ITERATE  loop_label;
+        ELSE
+        SET  str = CONCAT(str,x,',');
+        END  IF;
+    	END LOOP;
+    	SELECT str;
+	END$$
+ 
+	DELIMITER ;	
+
+=======Repeat========
+
+1)	Delimiter //
+ 	Create procedure sum_amt()
+	Begin
+	declare  Sum_of_amount varchar(200);
+	declare b int(10);
+	declare x int(100);
+	declare sum int(100);
+
+	set Sum_of_amount = '' ;
+	set b = 1;
+	set x = 1;
+	set sum = 0;
+
+	Repeat
+ 	select fee_amt into x from fees where fee_id = b;
+	set Sum_of_amount = concat(Sum_of_amount,' ','+',' ',x);
+  	set sum=sum+x;
+	set b = b+1;
+	until b = 9
+	End repeat;
+        Select Sum_of_amount;
+	select sum;
+
+	Delimiter ; 
+
+2)	Delimiter /
+	Create procedure show_batch_repeat()
+	Begin
+	Declare a int;
+	Declare strng varchar(200);
+
+	set a = 1;
+	set strng = '';
+	Repeat
+	set strng = concat(strng,a,',');
+	set a=a+1;
+	until a =6
+	End REPEAT;
+
+	Select strng;
+	End /
+
+	Delimiter ; 	
+
+======CURSOR=======
+
+1)	DELIMITER $$
+	CREATE PROCEDURE createEmailList (
+   	 INOUT emailList varchar(4000)
+	)
+	BEGIN
+    	DECLARE finished INTEGER DEFAULT 0;
+    	DECLARE emailAddress varchar(100) DEFAULT "";
+ 
+  	declare cursor for employee email
+   	DEClARE curEmail 
+        CURSOR FOR 
+        SELECT stu_email FROM student;
+ 
+        declare NOT FOUND handler
+    	DECLARE CONTINUE HANDLER 
+        FOR NOT FOUND SET finished = 1;
+ 
+    	OPEN curEmail;
+ 
+    	getEmail: LOOP
+        FETCH curEmail INTO emailAddress;
+        IF finished = 1 THEN 
+        LEAVE getEmail;
+        END IF;
+        build email list
+        SET emailList = CONCAT(emailAddress,";",emailList);
+        END LOOP getEmail;
+        CLOSE curEmail;
+ 
+END$$
+DELIMITER ;
+
+
+-----------------------------------------------------------------MONGO DB-----------------------------------------------------------------------------------
+
+/*Creating Database*/
+	--> use hospital
+
+/*Creating Collection*/
+	--> db.createCollection('doctor')
+	
+
+/*Inserting in Collection*/
+	--> db.doctor.insert({name:"abhishikt",dept:"neuroscientist",salary:70000,location:"ajmer"})
+	--> db.doctor.insert({name:"pritosh",dept:"dentist",salary:50000,location:"ajmer"})
+	--> db.doctor.insert({name:"abhishek",dept:"allergist",salary:40000,location:"faridabad"})
+	--> db.doctor.insert({name:"meban",dept:"cardiologist",salary:50000,location:"shilong"})
+	
+
+
+/*Display the data in collection*/
+	--> db.doctor.find()
+	--> db.doctor.find().pretty()
+
+/*To list few documents*/
+	--> db.doctor.find({},{'salary':1,'location':1})
+	-->  db.doctor.find({},{_id:0,'salary':1,'location':1})
+
+/*To list the documents in collection based on single (something similar to where) condition*/
+	--> db.doctor.find({salary:50000}).pretty()
+
+/*Use of AND condition*/
+	--> db.doctor.find({salary:70000,location:"ajmer"},{_id:0}).pretty()
+
+/*Use of or condition*/
+	--> db.doctor.find({$or:[{salary:70000},{location:"ajmer"}]},{_id:0}).pretty()
+
+/*Use of > , < , = >= , <=
+	--> db.doctor.find({salary:{$gt:50000}}).pretty()
+	--> db.doctor.find({salary:{$lt:50000}}).pretty()
+	--> db.doctor.find({salary:{$lte:50000}}).pretty()
+	--> db.doctor.find({salary:{$gte:50000}}).pretty()
+
+
+/*Sorting*/
+	--> db.doctor.find().sort({name:-1}).pretty()
+	--> db.doctor.find().sort({name:1}).pretty()
+
+/*Grouping*/
+	--> db.doctor.aggregate([{$group:{_id:"$salary",salarycount:{$sum:1}}}])
+
+/*Use of Remove*/
+	--> db.doctor.remove({salary:50000})
+
+/*updating commands*/
+
+	--> db.doctor.update({name:"pritosh"},{$set:{dept:"ent"}})
+	--> db.doctor.updateMany({salary:50000},{$set:{dept:"ent"}})
+	--> db.doctor.update({},{$set:{doc_id:1}})
+	--> db.doctor.update({name:"abhishek"},{$set:{doc_id:2}})
+	--> db.doctor.update({name:"abhishikt"},{$unset:{doc_id:1}})
+	--> db.doctor.update({},{$unset:{doc_id:""}},{multi:true})
+	--> db.doctor.update({name:"abhishek",salary:40000},{$set:{dept:"phycologist"}})
